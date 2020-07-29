@@ -1,0 +1,24 @@
+Vous faites partie de l'équipe de réponse à incident du Ministère des Armées. Une attaque a eu lieu, et un document unique, 
+vital pour la sécurité nationale, s'est retrouvé chiffré par un rançongiciel. Le ministère a besoin de mobiliser ses meilleures équipes.
+
+Un GIC (Groupe d'Intervention Cyber) s'est rendu sur place, afin d'effectuer le relevé de quelques traces. Vous êtes chargé de retrouver 
+le contenu original du fichier.
+
+fichier joint: dump.zip
+===============================================================================================================================
+
+Dans cet exercice je pense qu'ils ont maqué de temps ou de post analyse,
+dans l'archive il y a un Final.dmp, si on fait un "strings" dessus, pusi un grep de Flag et de chall
+  => strings Final.dmp | grep Flag | grep chall 
+  
+  On obtient:
+"
+# Flag for the challenge :) 
+# Flag for the challenge :) 
+EMBER     /!\ DO NOT DELETE OR IT'S LOST FOREVER /!\  # Creds for production web server  username : prodaccount243  password : Passw0rd!   
+# Wedding birthday (dont't forget the gift!)  12/08/1999  # Flag for the challenge :)  c4dcde3656f625ff6857797f64bb67fb  # MISC accounts bank          
+: jonhdoe@dummy.com / str0ngp4ssw0rdBANK Car insurance : jonhdoe@dummy.com / str0ngp4ssw0rdCAR VPN CREDS     : jonhdoe@dummy.com / str0ngp4ssw0rdVPN  
+# Best cookie recipe ever tasted http://bitly.com/98K8eH
+"  
+
+  Flag for the challenge :)  c4dcde3656f625ff6857797f64bb67fb 
