@@ -1,0 +1,105 @@
+Quick WriteUP from the French Army CTF 2020
+
+During summer 2020 The French Army organized a CTF with various challanges
+https://quel-hacker-es-tu.defense.gouv.fr
+
+Thr one I'll show you is the "Fuite d'information"
+https://quel-hacker-es-tu.defense.gouv.fr/challenges/dicod/fuite-dinformation/
+
+We recived a .pcap file with loads of junk and crypted data, ok...
+
+1. Looking around.
+  opening Wireshark an starting analysing the file, exporting objetcs etc, nothing realy interesting.
+  if we organize the lignes by Length we can see those lignes:
+  
+  70	400.360219	192.168.56.107	192.168.56.1	SSHv2	1146		Server: Key Exchange Init
+  209	656.480828	192.168.56.104	192.168.56.1	ICMP	1329		Echo (ping) reply    id=0x0125, seq=0/0, ttl=64
+  72	400.361013	192.168.56.1	192.168.56.107	SSHv2	1458		Client: Key Exchange Init
+  206	656.477790	192.168.56.104	192.168.56.1	IPv4	1514		Fragmented IP protocol (proto=ICMP 1, off=0, ID=0001) [Reassembled in #209]
+  207	656.479042	192.168.56.104	192.168.56.1	IPv4	1514		Fragmented IP protocol (proto=ICMP 1, off=1480, ID=0001) [Reassembled in #209]
+  208	656.480038	192.168.56.104	192.168.56.1	IPv4	1514		Fragmented IP protocol (proto=ICMP 1, off=2960, ID=0001) [Reassembled in #209]
+  46	368.239263	192.168.56.106	192.168.56.1	HTTP	3446		HTTP/1.1 200 OK  (text/html)
+  330	840.583651	192.168.56.106	192.168.56.1	HTTP	3446		HTTP/1.1 200 OK  (text/html)
+  49	368.450367	192.168.56.106	192.168.56.1	HTTP	6106		HTTP/1.1 200 OK  (PNG)
+  
+  The last 3 lignes are unfortunatly not that interesting but the ones with "Fragmented IP protocol" seems more promessing.
+  So let see what's going on between those 2 guys
+  
+  
+2. Sometimes using "strings" can be helpfull and easier for copy/paste . Let try that...
+  
+  "
+  <START><crypto>LOW</crypto><data><zft>Qb lbh erprvir zr ?</zft></data></END>
+  <START><crypto>LOW</crypto><data><zft>Lrf, ohg jr arrq gb rapelcg bhe pbzzhavpngvbaf.</zft></data></END>
+  <START><crypto>LOW</crypto><data><zft>Bxnl, cyrnfr fraq zr gur xrl va beqre gb hfr gur frpher zbqr.</zft></data></END>
+  <START><crypto>LOW</crypto><data><svyr>
+  vIOBEj0XTtbNNNNAFHuRHtNNNRjNNNNtPNLNNNP4bM4XNNNNOTqOGHRNNYTCP/kuODNNNPOwFSWANNO6WtNNtVDNNCbNNNPN6NNNqGNNNBctNNN6zNNNS3PphyR8NNNNOzWYE0DN/jQ/NC+tinr
+  GNNNNO3EWGHHU5NRBQuVf3NlpwDNNQbAWERSHnA7qzgzCMIq1ka9eQ2r499oLKJK3MWghoAZzZwLTL8Hvt6VxDwjyQ0w5jlYyCKaWHkOXFRFPRkOwEVtAOedA293hbKdd6ed37e1a3UhiCWmo3K
+  njUFWN2TmcdVMmdzdi73k7er9od6Fhn+I3pfad4683CCsoQhgKKDbVttvtvzcPAG64Y2VDfFPP6d8B3xpDZNHPLRydFXWbi6Os7AZp3dFq3vM2H0OWRKjkVgf8Foy1vallN36ZvZUpk04vLUwVl
+  A85jNP1dOvVAp3+T0msscJQz5rWllaF1lGPPtOQvOUWR/azFGMCCZ/BL89Eoc8TJ7mwOrtiQMu8WUALte6opssF97u38EgHf5fLn/N+j4vtbDpSZM7LW7dzc08WJ+DpB3Jnans+tCKGmlA+twjN6
+  3rLLFUZhK3u37u74Ef08laydZEnP4PdexODWRJZtCBPS0..........
+  .............
+  </svyr></data></END>
+  '7\L<START><crypto>LOW</crypto><data><zft>V'z ranoyvat frpher zbqr.</zft></data></END>
+  '7\L<START><crypto>AES</crypto><data>YrFIsdoxPJFgAgFVIFL5q55tcLThLAOzPrrNYVv05sY=</data></END>
+  '7\L<START><crypto>AES</crypto><data>YrFIsdoxPJFgAgFVIFL5q55tcLThLAOzPrrNYVv05sY=</data></END>
+  '7\L<START><crypto>AES</crypto><data>K7JqQvDfUJA/tlzka7feSVQ+B9GC4vyUVvuBsp7Ow2gnLn+B/x5//lJhwDnN9r16qz0CoYda62iOq/7Isf2hNw==</data></END>
+  '7\L<START><crypto>AES</crypto><data>
+  "
+  Ok, we have a <crypto>LOW and a <crypto>AES
+  we do not know anything about AES yet so we will try the <crypto>LOW
+  
+3. Obiously it's not a Base64, we can try Caesar cyfers or ROT 13
+    If we use an online decoder as : https://cryptii.com/pipes/rot13-decoder and we stick the first crypted sentence in:
+    "Qb lbh erprvir zr ?" becomes : "Do you receive me ?" . Good ;) let's keep going that way
+    Lrf, ohg jr arrq gb rapelcg bhe pbzzhavpngvbaf. -> Yes, but we need to encrypt our communications.
+    Bxnl, cyrnfr fraq zr gur xrl va beqre gb hfr gur frpher zbqr.-> Okay, please send me the key in order to use the secure mode.
+    ok, obiously the next big crypted data shoud be the key.
+4. Unfortunatly the ROT13 on that big data does not give us anything interesting. As we can see "<crypto>LOW" we shoudn't be far from the true but hwo?
+  if we do a ROT13 and than a "BASE64 -d "on it with an output into a file
+    echo "the_rot13" | base64 -d > out
+  we get a png file displaying  a key, perfect :)
+5. We start to know that the guy that created this challange is a bit sick so we expect him doing some starnge things again. Ok he did some stegano on the PNG?
+  If we do a strings on the .png file we can see couple of lignes with "key.txtUT", ok.
+  Lets's try an easy one with "foremost -i The_Key.png". Perfect we get a .zip file and a .png file
+  A zip file... you guessed the following step, we connot opening it without password, and bingo it's password protected.
+6. I did look around, reopening all files but couln't  find any password. We can try a brute force on it, never knoww.
+  fcrackzip -u -D -p '/usr/share/wordlists/rockyou.txt' '00000007.zip' => password found mujeresjovenes :):) that zip file gives us a txt file with:
+  "Chat encryption key : jNKliA3xVUW5W1fw3E1XcJZGvf4WvAev"
+7. Ok, we nearly done, a small python script to decode the rest:
+
+          from Crypto.Util.number import long_to_bytes as lb
+          from Crypto.Cipher import AES
+          import base64
+
+          Key = "jNKliA3xVUW5W1fw3E1XcJZGvf4WvAev"
+          
+          base64_string ="YrFIsdoxPJFgAgFVIFL5q55tcLThLAOzPrrNYVv05sY="
+          #base64_string ="K7JqQvDfUJA/tlzka7feSVQ+B9GC4vyUVvuBsp7Ow2gnLn+B/x5//lJhwDnN9r16qz0CoYda62iOq/7Isf2hNw=="
+          #base64_string ="Ko8PuUS3q4KN9rYINXEwRkmDSVYSPAljzlSe9LAnOFznEj3m8kHsTBUQM90qU18IEqwv7912RTKU7COxeDUqhcsm/zfeuoWsgpOtaTHyIF0WQA4TMjh/gvrWt7svXm4kM9U9/BQ+KUJ45oUX1Xf6QA=="
+          #base64_string ="KXRrBU0S1hF3gteofyOE4RRhQsvvAHFwLmJgeJbw+6aLD21Ia8gynVN/WkT5PNGbm0xUf85WB18tpl0kuV7C4g=="
+          #base64_string ="xISJsKHOpj+ir6ZrxHr8KKmWGIoYrMOJ4WXOB9FIN5HXTJ10rQ9/X7+DdAU+bARyZBCz1dIdBRUR9ovrvCSAAA=="
+
+          base64_bytes = base64_string.encode("ascii") 
+          Ct = base64.b64decode(base64_bytes) 
+          Cipher = AES.new(Key,AES.MODE_ECB)
+          Pt = Cipher.decrypt(Ct)
+          print "Result :",Pt
+
+      Ok, next time I'll do a loop on it :s
+  
+ the decrypted data is :
+<msg>Secure mode enabled.</msg>{
+<msg>Secure mode enabled.</msg>{
+<msg>Did you find required information about our target ?</msg>{
+<msg>Yes, his name is Bastien Manoury, he will be at GPS 43.2961743,5.3699525 on 04/03/2020 05:30 PM.</msg>{{{{{
+<msg>Great job, extradition operation is approved.</msg>{{{{{{{{
+<msg>Okay I will be there in order to catch him.</msg>{{{{{{{{{{
+
+The flag was the GPS coordonates.
+
+Hope you enjoyed it :)
+ 
+  
+ 
+  
