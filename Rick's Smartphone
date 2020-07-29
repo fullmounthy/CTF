@@ -1,0 +1,120 @@
+Description
+
+Le service chargé de la sécurité du personnel militaire pense avoir identifié la compromission d’un personnel du ministère des Armées par un service 
+de renseignement étranger. Nom de code donné à l’agent suspecté : Rick.
+
+Apparemment, « Rick » communiquerait en utilisant l'interface Citadel avec le service étranger. Le service chargé de la sécurité du personnel militaire 
+a intercepté les données échangées sur son hub USB, vous disposez des informations extraites dans le fichier PCAP ci-dessous.
+
+Votre mission est de permettre l'accès à l'interface Citadel. Un de vos collègues a fait une rapide analyse du contenu, certaines informations semblent chiffrées…
+
+fichiers a disposition: chall.pcapng 
+
+il est pas tres évident a solutionner j'espere que ca sera comprehensible
+========================================================================================================================================================================
+
+1. analyse générale du pcap avec "strings" : il y a du freeopt avec aes254, du keypass et secrect.kdbx.
+2. dans le pcap il y a pas mal de lengh a 64, 72, 88 et 3 gros paquets a +1000
+3. comme c'est un pcap qui analyse la communication usb on peut se dire qu'il y a aussi les touches du clavier qui pourraient etre enregistrées, ok on va voir ca,
+4. je me suis servi du lien suivant : https://medium.com/@ali.bawazeeer/kaizen-ctf-2018-reverse-engineer-usb-keystrok-from-pcap-file-2412351679f4 
+  pour faire l'analyse de frappe, c'est assez interessant et du jamais vu pour moi.
+  
+  suivre les indications du lien: trier, exporter et passer un script python dessus
+
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
+
+newmap = {2: "PostFail", 4: "q", 5: "b", 6: "c", 7: "d", 8: "e", 9: "f", 10: "g", 11: "h", 12: "i", 13: "j", 14: "k", 15: "l", 16: "m", 17: "n", 18: "o", 19: "p", 
+	20: "a", 21: "r", 22: "s", 23: "t", 24: "u", 25: "v", 26: "z", 27: "x", 28: "y", 29: "w", 30: "1", 31: "2", 32: "3", 33: "4", 34: "5", 35: "6", 36: "7", 
+	37: "8", 38: "9", 39: "0", 40: " Enter ", 41: " esc ", 42: " del ", 43: " tab ", 44: " space ", 45: "-", 46: "=", 47: "[", 48: "]", 49:"\"", 50:"<NON>", 51:"m", 		52:"'", 53: "<GA>",  54: ",", 55: ".", 56: "/", 57: " CapsLock ", 79: " RightArrow ",80: " LetfArrow ", 86:"-"}
+
+myKeys = open("2.export_hex_2")
+i = 1
+for line in myKeys:
+	bytesArray = bytearray.fromhex(line.strip())
+	#print "Line Number: " + str(i)
+	for byte in bytesArray:
+		if byte != 0:
+			keyVal = int(byte)
+
+			if keyVal in newmap:
+				#print "Value map : " + str(keyVal) + " — -> " + newmap[keyVal]
+				print newmap[keyVal]
+			else:
+				print "No map found for this value: " + str(keyVal)
+#print format(byte, ‘02X’)
+i+=1
+
+
+5. on passe un peu de temps à remetre tout en place et on obtient entre-autre les lignes suivantes:
+il faut aussi voir un peu comment adb fonctionne et on remarque que le script d'analyse des touches 
+du clavier dédouble les lettres de temps en temps mais rien d'insurmontable
+whoami
+ Enter 
+sudo
+ space 
+adb
+ space 
+start-server				=> adb start-server // Android Debug Bridge (adb) | Android Developers
+ Enter 
+nevergonnaletyoudown			=> nevergonnaletyoudown password sudo
+ Enter 
+aaddb					=> adb shell (commande pour ouvrir adb) adb backup -f ~/freeotp.ab -noapk org.fedorahosted.freeotp
+...
+keepass					=> keepass
+ Enter 
+exit
+ Enter 
+addb
+ space 
+pull					=> via adb = transfert files from android to the pc
+...
+keepaasss				=> keepass
+supeerrsecrreet				=> supersecret.kdbx
+kdbx					=> supersecret.kdbx
+ Enter 
+adb
+ space 
+backup					=> For full backup, type ‘./adb pull /sdcard   /// adb backup -f freeotp.adb -apk org.fedorahosted.freeotp ?
+ space 
+org					
+ffeedorahhoosted			=> org.fedorahosted.freeotp
+frreeeotp				=> adb backup org.fedorahosted.freeopt => org.fedorahosted.freeotp (commande complete : adb backup -f ~/freeotp.ab -noapk org.fedorahosted.freeotp) ?
+
+donc on voit qu'il a lancé adb en sudo avec le password "nevergonnaletyoudown" on voit le keepass qui est à nouveau là et une commande de backup pour le freeotp.
+on va se renseigner un peu sur ce que c'est ce freeotp 
+"
+FreeOTP is a two-factor authentication application for systems utilizing one-time password protocols. 
+Tokens can be added easily by scanning a QR code. 
+If you need to generate a QR code, try our QR code generator.
+"
+ok, donc c'est une app de token en 2 facteurs avec une option de qr code
+
+6. L'analyse des gros paquets dans wireshark ne donne rien mis à part le plus gros qui semble interesant:
+1161	88.842622	1.2.1	host	USB	1558	03d9a29a67fb4bb50100030002100031c1f2e6bf714350be…	URB_BULK in
+
+7. si on exporte ce paquet, on remarque qu'a la fin il y a un "DONE" qu'il faut enlever, c'est la fin de la communication du fichier.
+  on enleve donc le "DONE" en fin de hec avec GHEX et on utilise le passw "nevergonnaletyoudown", pour le décrypter, 
+  on optient un pass pour Citadel login:rick passw:vWuFFk8Q
+  La, je crois que j'ai perdu la moitié d'entre vous :(
+
+8. il manque le token pour se connecter.. on va tester l'appli pour voir comment  elle travaille...
+	installer freeotp pour le test et creer un correspondance via https://www.hostpapa.ca/knowledgebase/wp-content/uploads/2017/08/wp-authenticator-settings.png
+	on installe adb pour faire un backup et tester le backup
+	installer adb et le lancer "via adb shell" ensuite si la connection est ok "exit"
+	backup des donnees opt via la commande "adb backup -f org.fedorahosted.freeopt"
+	on installe les abe pour transformer backup.ab en backup.tar avec le mdp de l'extraction : java -jar abe.jar unpack backup.ab backup.tar 1234
+	ok ca fonctionne :)
+9. on joint les 3 ! bin du pcap en 1 seul pour former l'archive backup.ab
+10. java -jar abe.jar unpack backup.ab backup.tar nevergonnaletyoudown
+11. on peut deziper le tar et dans l'archive il y a un token.xml
+12. le lire avec https://pr0ps.github.io/freeotp-export/ et scanner le qr code avec l'appli.
+13 se logger avec sur le site avec le login:rick passw:vWuFFk8Q et le token généré par freeopt
+
+=> EverythingIsBetterWithTruffles
+
+:) :) :)
+
+
+
