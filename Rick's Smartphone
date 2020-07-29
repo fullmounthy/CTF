@@ -98,6 +98,8 @@ ok, donc c'est une app de token en 2 facteurs avec une option de qr code
   on enleve donc le "DONE" en fin de hec avec GHEX et on utilise le passw "nevergonnaletyoudown", pour le décrypter, 
   on optient un pass pour Citadel login:rick passw:vWuFFk8Q
   La, je crois que j'ai perdu la moitié d'entre vous :(
+  
+---------------- A Réécrire ---------------------------
 
 8. il manque le token pour se connecter.. on va tester l'appli pour voir comment  elle travaille...
 	installer freeotp pour le test et creer un correspondance via https://www.hostpapa.ca/knowledgebase/wp-content/uploads/2017/08/wp-authenticator-settings.png
